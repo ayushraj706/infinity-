@@ -1,4 +1,4 @@
-name: Ghost Engine V31 - Build APK
+name: Ghost Engine V31 - Build Pro APK
 on:
   push:
     branches: [ main ]
@@ -28,22 +28,24 @@ jobs:
       - name: 🛠️ Generate Android Folder
         run: npx expo prebuild --platform android --no-install
 
-      - name: 📦 Bundle JavaScript (The Offline Fix)
-        # Sahi command aur sahi spelling (--assets-dest) ke saath
+      - name: 📦 Bundle JavaScript (Offline Mode)
+        # Ye step JS code ko APK ke andar permanent pack kar deta hai
         run: |
           mkdir -p android/app/src/main/assets
           npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
-      - name: ⚙️ Build Standalone APK (Gradle)
+      - name: ⚙️ Build Standalone Release APK
+        # assembleDebug ki jagah assembleRelease use kar rahe hain (No Red Screens!)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
 
-      - name: 📤 Upload Ghost V31 APK
+      - name: 📤 Upload Ghost V31 Pro APK
         uses: actions/upload-artifact@v4
         with:
-          name: Ghost-Engine-V31-Offline-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Ghost-Engine-V31-Pro
+          # Release APK ka path badal jata hai, dhyan dena:
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 7
           
