@@ -1,0 +1,15 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="220" fill="url(#insta_grad)"/>
+  
+  <path d="M512 720L320 420H420V220H604V420H704L512 720Z" fill="white"/>
+  <path d="M300 780H724V840H300V780Z" fill="white" opacity="0.8"/>
+  
+  <defs>
+    <linearGradient id="insta_grad" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#833ab4"/>
+      <stop offset="0.5" stop-color="#fd1d1d"/>
+      <stop offset="1" stop-color="#fcb045"/>
+    </linearGradient>
+  </defs>
+</svg>
+
