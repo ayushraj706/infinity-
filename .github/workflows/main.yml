@@ -29,23 +29,24 @@ jobs:
         run: npx expo prebuild --platform android --no-install
 
       - name: 📦 Bundle JavaScript (Offline Mode)
-        # Ye step JS code ko APK ke andar permanent pack kar deta hai
         run: |
           mkdir -p android/app/src/main/assets
           npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
       - name: ⚙️ Build Standalone Release APK
-        # assembleDebug ki jagah assembleRelease use kar rahe hain (No Red Screens!)
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
 
+      - name: 🔍 Find APK Path (For Debugging)
+        run: find android/app/build/outputs/apk/ -name "*.apk"
+
       - name: 📤 Upload Ghost V31 Pro APK
         uses: actions/upload-artifact@v4
         with:
           name: Ghost-Engine-V31-Pro
-          # Release APK ka path badal jata hai, dhyan dena:
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          # Maine yahan wildcard (*) laga diya hai taaki koi bhi release APK mil jaye
+          path: android/app/build/outputs/apk/release/*.apk
           retention-days: 7
           
