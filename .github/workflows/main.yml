@@ -1,11 +1,11 @@
-name: Ghost Engine V31 - Artifact Build
+name: Ghost Engine V31 - Build APK
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-and-upload:
+  android-build:
     runs-on: ubuntu-latest
     steps:
       - name: 📦 Checkout Project
@@ -16,23 +16,29 @@ jobs:
         with:
           node-version: '20'
 
+      - name: ☕ Setup Java (Android SDK ke liye)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu' # Professional standard
+          java-version: '17'
+
       - name: 📥 Install Dependencies
         run: npm install
 
-      - name: 🛠️ Prepare Build Files
-        run: |
-          echo "Ghost Engine V31: Preparing artifacts..."
-          mkdir -p build-output
-          cp App.js build-output/ || true
-          cp app.json build-output/ || true
-          cp package.json build-output/ || true
-          cp -r scripts build-output/ || true
-          cp -r assets build-output/ || true
+      - name: 🛠️ Generate Android Native Folder
+        # Ye command app.json ko padh kar asli android files banati hai
+        run: npx expo prebuild --platform android --no-install
 
-      - name: 📤 Upload Artifact (The Download Button)
+      - name: ⚙️ Build Debug APK (Gradle)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: 📤 Upload Actual APK
         uses: actions/upload-artifact@v4
         with:
-          name: Ghost-Engine-V31-Build
-          path: build-output/
+          name: Ghost-Engine-V31-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
           
