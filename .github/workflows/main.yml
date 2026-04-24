@@ -1,4 +1,4 @@
-name: Ghost Engine V31 - Build APK
+name: Ghost Engine V31 - Offline APK
 on:
   push:
     branches: [ main ]
@@ -16,29 +16,34 @@ jobs:
         with:
           node-version: '20'
 
-      - name: ☕ Setup Java (Android SDK ke liye)
+      - name: ☕ Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu' # Professional standard
+          distribution: 'zulu'
           java-version: '17'
 
       - name: 📥 Install Dependencies
         run: npm install
 
-      - name: 🛠️ Generate Android Native Folder
-        # Ye command app.json ko padh kar asli android files banati hai
+      - name: 🛠️ Generate Android Folder
         run: npx expo prebuild --platform android --no-install
 
-      - name: ⚙️ Build Debug APK (Gradle)
+      - name: 📦 Bundle JavaScript (The Offline Fix)
+        # Ye command JS code ko APK ke andar pack kar degi
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
+      - name: ⚙️ Build Standalone APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: 📤 Upload Actual APK
+      - name: 📤 Upload Ghost V31 APK
         uses: actions/upload-artifact@v4
         with:
-          name: Ghost-Engine-V31-APK
+          name: Ghost-Engine-V31-Offline-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
           
