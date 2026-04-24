@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { WebView } from 'react-native-webview';
 import { PermissionsAndroid, Platform, ToastAndroid, SafeAreaView, StatusBar } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
-// Injector code ko import kar rahe hain (Dhyan rahe ki injector file me module.exports ho)
+// Injector file ko import kar rahe hain (Jo ab ek string hai)
 const INJECTOR_RAW = require('./scripts/instagram-injector.js');
 
 const App = () => {
@@ -11,6 +11,7 @@ const App = () => {
     
     const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
+    // Bridge: WebView se message receive karna
     const handleMessage = async (event) => {
         try {
             const data = JSON.parse(event.nativeEvent.data);
@@ -22,6 +23,7 @@ const App = () => {
         }
     };
 
+    // Download Function
     const downloadMedia = async (url, type) => {
         try {
             if (Platform.OS === 'android') {
@@ -62,17 +64,16 @@ const App = () => {
         }
     };
 
-    // Yahan hum ensure kar rahe hain ki injector string format mein ho
+    // Yahan injection logic ko ekdum simple rakha hai
+    // Kyunki INJECTOR_RAW pehle se hi ek wrapped IIFE string hai
     const injectedJavaScript = `
-        (function() {
-            ${typeof INJECTOR_RAW === 'string' ? INJECTOR_RAW : 'console.log("Injector Load Failed");'}
-        })();
+        ${INJECTOR_RAW}
         true;
     `;
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-            <StatusBar barStyle="dark-content" />
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
             <WebView
                 ref={webViewRef}
                 source={{ uri: 'https://www.instagram.com' }}
@@ -82,11 +83,12 @@ const App = () => {
                 injectedJavaScript={injectedJavaScript}
                 onMessage={handleMessage}
                 onLoadEnd={() => {
+                    // Page load hone par dobara inject karna zaroori hai
                     webViewRef.current?.injectJavaScript(injectedJavaScript);
                 }}
-                // Mobile layout issues fix karne ke liye
                 scalesPageToFit={true}
                 mixedContentMode="always"
+                startInLoadingState={true}
             />
         </SafeAreaView>
     );
