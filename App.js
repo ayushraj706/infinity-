@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
-// Injector import
 const INJECTOR_RAW = require('./scripts/instagram-injector.js');
 
 const App = () => {
@@ -14,18 +13,29 @@ const App = () => {
     const [historyVisible, setHistoryVisible] = useState(false);
     const [downloadHistory, setDownloadHistory] = useState([]);
 
-    // Pixel 8 Pro User Agent - Isse Instagram asli mobile app jaisa dikhega
-    const USER_AGENT = 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro Build/UD1A.230805.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/122.0.6261.64 Mobile Safari/537.36';
+    // Pixel 8 Pro User Agent - Forcing Mobile Layout
+    const USER_AGENT = 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.6261.64 Mobile Safari/537.36';
 
-    // 1. Permissions Fix: App khulte hi mangne ke liye
+    // 1. Universal Permissions Fix (Android 10 se Android 14 tak sabke liye)
     useEffect(() => {
         const askPermissions = async () => {
             if (Platform.OS === 'android') {
                 try {
-                    await PermissionsAndroid.requestMultiple([
+                    let permissions = [
                         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
                         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-                    ]);
+                    ];
+
+                    // Android 13 aur upar ke liye extra permissions zaroori hain
+                    if (Platform.Version >= 33) {
+                        permissions.push(
+                            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+                            PermissionsAndroid.PERMISSIONS.READ_MEDIA_VIDEO
+                        );
+                    }
+
+                    const granted = await PermissionsAndroid.requestMultiple(permissions);
+                    console.log('Permissions Status:', granted);
                 } catch (err) {
                     console.warn(err);
                 }
@@ -66,14 +76,12 @@ const App = () => {
                 },
             }).fetch('GET', url);
             
-            // History mein add karna
             setDownloadHistory(prev => [{ id: timestamp.toString(), name: fileName }, ...prev]);
-            
             ToastAndroid.show('✓ Saved in Gallery', ToastAndroid.SHORT);
             RNFetchBlob.fs.scanFile([{ path: downloadPath }]);
             
         } catch (error) {
-            ToastAndroid.show('Download failed!', ToastAndroid.SHORT);
+            ToastAndroid.show('Download failed! Check permission.', ToastAndroid.SHORT);
         }
     };
 
@@ -83,7 +91,6 @@ const App = () => {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-            {/* Top Bar / Header */}
             <View style={styles.header}>
                 <Text style={styles.logoText}>Ghost Engine V31</Text>
                 <TouchableOpacity style={styles.historyBtn} onPress={() => setHistoryVisible(true)}>
@@ -91,16 +98,16 @@ const App = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Main Browser */}
             <WebView
                 ref={webViewRef}
                 source={{ uri: 'https://www.instagram.com' }}
                 userAgent={USER_AGENT}
                 javaScriptEnabled={true}
-                domStorageEnabled={true} // Wi-Fi Fix 1
-                databaseEnabled={true}    // Wi-Fi Fix 2
-                mixedContentMode="always" // Wi-Fi Fix 3
-                cacheEnabled={true}
+                domStorageEnabled={true} 
+                databaseEnabled={true}    
+                mixedContentMode="always" 
+                allowFileAccess={true}     // Added for better loading
+                originWhitelist={['*']}    // Wi-Fi loading fix
                 injectedJavaScript={injectedJavaScript}
                 onMessage={handleMessage}
                 onLoadEnd={() => {
@@ -110,7 +117,6 @@ const App = () => {
                 startInLoadingState={true}
             />
 
-            {/* Download Manager Modal */}
             <Modal visible={historyVisible} animationType="slide">
                 <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
                     <View style={styles.modalHeader}>
@@ -137,53 +143,15 @@ const App = () => {
 };
 
 const styles = StyleSheet.create({
-    header: {
-        height: 55,
-        backgroundColor: '#fff',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 15,
-        elevation: 4,
-        borderBottomWidth: 1,
-        borderColor: '#eee'
-    },
-    logoText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#dc2743',
-    },
-    historyBtn: {
-        padding: 8,
-        borderRadius: 20,
-        backgroundColor: '#f0f0f0'
-    },
-    modalHeader: {
-        padding: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderColor: '#eee'
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold'
-    },
-    closeBtn: {
-        color: 'red',
-        fontWeight: 'bold'
-    },
-    historyItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderColor: '#f9f9f9'
-    },
-    emptyText: {
-        textAlign: 'center',
-        marginTop: 50,
-        color: 'gray'
-    }
+    header: { height: 55, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, elevation: 4, borderBottomWidth: 1, borderColor: '#eee' },
+    logoText: { fontSize: 18, fontWeight: 'bold', color: '#dc2743' },
+    historyBtn: { padding: 8, borderRadius: 20, backgroundColor: '#f0f0f0' },
+    modalHeader: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderColor: '#eee' },
+    modalTitle: { fontSize: 20, fontWeight: 'bold' },
+    closeBtn: { color: 'red', fontWeight: 'bold' },
+    historyItem: { padding: 15, borderBottomWidth: 1, borderColor: '#f9f9f9' },
+    emptyText: { textAlign: 'center', marginTop: 50, color: 'gray' }
 });
 
 export default App;
+                    
