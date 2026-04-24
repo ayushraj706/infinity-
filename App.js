@@ -3,7 +3,7 @@ import { WebView } from 'react-native-webview';
 import { PermissionsAndroid, Platform, ToastAndroid, SafeAreaView, StatusBar } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 
-// Injector file ko import kar rahe hain (Jo ab ek string hai)
+// Injector ko import kar rahe hain (Ab ye ek saaf-suthri string hai)
 const INJECTOR_RAW = require('./scripts/instagram-injector.js');
 
 const App = () => {
@@ -11,7 +11,6 @@ const App = () => {
     
     const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
-    // Bridge: WebView se message receive karna
     const handleMessage = async (event) => {
         try {
             const data = JSON.parse(event.nativeEvent.data);
@@ -23,7 +22,6 @@ const App = () => {
         }
     };
 
-    // Download Function
     const downloadMedia = async (url, type) => {
         try {
             if (Platform.OS === 'android') {
@@ -32,7 +30,7 @@ const App = () => {
                 );
                 
                 if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-                    ToastAndroid.show('Permission denied! Check settings.', ToastAndroid.SHORT);
+                    ToastAndroid.show('Storage permission required!', ToastAndroid.SHORT);
                     return;
                 }
             }
@@ -40,8 +38,8 @@ const App = () => {
             const { fs } = RNFetchBlob;
             const timestamp = Date.now();
             const ext = type === 'video' ? 'mp4' : 'jpg';
-            const fileName = `Ghost_V31_${timestamp}.${ext}`;
-            const downloadPath = `${fs.dirs.DownloadDir}/${fileName}`;
+            const fileName = 'Ghost_V31_' + timestamp + '.' + ext;
+            const downloadPath = fs.dirs.DownloadDir + '/' + fileName;
             
             ToastAndroid.show('Ghost Engine: Downloading...', ToastAndroid.SHORT);
             
@@ -51,25 +49,22 @@ const App = () => {
                     useDownloadManager: true,
                     notification: true,
                     mime: type === 'video' ? 'video/mp4' : 'image/jpeg',
-                    description: 'Downloaded by Ghost Engine V31',
+                    description: 'Downloaded by Ghost Engine',
                     title: fileName,
                 },
             }).fetch('GET', url);
             
-            ToastAndroid.show('✓ Media Saved in Gallery', ToastAndroid.LONG);
+            ToastAndroid.show('✓ Saved to Gallery', ToastAndroid.LONG);
             RNFetchBlob.fs.scanFile([{ path: downloadPath }]);
             
         } catch (error) {
-            ToastAndroid.show('Download failed!', ToastAndroid.SHORT);
+            ToastAndroid.show('Download error!', ToastAndroid.SHORT);
         }
     };
 
-    // Yahan injection logic ko ekdum simple rakha hai
-    // Kyunki INJECTOR_RAW pehle se hi ek wrapped IIFE string hai
-    const injectedJavaScript = `
-        ${INJECTOR_RAW}
-        true;
-    `;
+    // Yahan humne backticks hata kar simple concatenation use kiya hai
+    // Isse Bundler confuse nahi hoga aur script 100% inject hogi
+    const injectedJavaScript = INJECTOR_RAW + "; true;";
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -83,7 +78,7 @@ const App = () => {
                 injectedJavaScript={injectedJavaScript}
                 onMessage={handleMessage}
                 onLoadEnd={() => {
-                    // Page load hone par dobara inject karna zaroori hai
+                    // Har page load par script re-inject hogi
                     webViewRef.current?.injectJavaScript(injectedJavaScript);
                 }}
                 scalesPageToFit={true}
