@@ -1,0 +1,40 @@
+name: Ghost Engine V31 - Artifact Build
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Taaki tum manually bhi run kar sako
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout Project
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 Install Dependencies
+        run: npm install
+
+      - name: 🛠️ Prepare Build Files
+        run: |
+          echo "Ghost Engine V31: Preparing artifacts..."
+          # Yahan hum files ko ek jagah collect kar rahe hain
+          mkdir -p build-output
+          cp App.js build-output/
+          cp app.json build-output/
+          cp package.json build-output/
+          cp -r scripts build-output/
+          cp -r assets build-output/
+
+      - name: 📤 Upload Artifact (The Download Button)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ghost-Engine-V31-Build # Ye download file ka naam hoga
+          path: build-output/ # Is folder ki saari files download hongi
+          retention-days: 7 # 7 din tak download link rahega
+          
