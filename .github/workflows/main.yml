@@ -29,10 +29,10 @@ jobs:
         run: npx expo prebuild --platform android --no-install
 
       - name: 📦 Bundle JavaScript (The Offline Fix)
-        # Expo ka naya export:embed system jo Metro config ke error ko fix karega
+        # Sahi command aur sahi spelling (--assets-dest) ke saath
         run: |
           mkdir -p android/app/src/main/assets
-          npx expo export:embed --platform android --dev false --asset-dest android/app/src/main/res --bundle-output android/app/src/main/assets/index.android.bundle
+          npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
 
       - name: ⚙️ Build Standalone APK (Gradle)
         run: |
