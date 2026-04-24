@@ -61,7 +61,7 @@ module.exports = `(function() {
         
         if (!mediaUrl) return;
         const actionBar = article.querySelector('section > div');
-        if (actionBar && !actionBar.querySelector('.' + CONFIG.buttonClass)) {
+        if (actionBar && !actionBar.querySelector(\'.\' + CONFIG.buttonClass)) {
             actionBar.appendChild(createDownloadButton(mediaUrl, mediaType));
             article.classList.add(CONFIG.processedClass);
         }
@@ -82,7 +82,7 @@ module.exports = `(function() {
         }
         if (!mediaUrl) return;
         const header = storyViewer.querySelector('header');
-        if (header && !header.querySelector('.' + CONFIG.buttonClass)) {
+        if (header && !header.querySelector(\'.\' + CONFIG.buttonClass)) {
             const downloadBtn = createDownloadButton(mediaUrl, mediaType);
             downloadBtn.style.marginLeft = 'auto';
             header.appendChild(downloadBtn);
@@ -91,25 +91,17 @@ module.exports = `(function() {
     }
     
     function injectStyles() {
-        if (document.getElementById('ghost-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'ghost-styles';
-        style.textContent = \`
-            .\${CONFIG.buttonClass} {
-                display: flex; align-items: center; gap: 6px; padding: 6px 12px;
-                background: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045);
-                color: white; border: none; border-radius: 6px;
-                font-weight: 600; font-size: 12px; cursor: pointer;
-                margin-left: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }
-        \`;
+        if (document.getElementById(\'ghost-styles\')) return;
+        const style = document.createElement(\'style\');
+        style.id = \'ghost-styles\';
+        style.textContent = \'.\' + CONFIG.buttonClass + \' { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; margin-left: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }\';
         document.head.appendChild(style);
     }
     
     function init() {
         injectStyles();
         setInterval(() => {
-            document.querySelectorAll('article').forEach(injectPostButton);
+            document.querySelectorAll(\'article\').forEach(injectPostButton);
             injectStoryButton();
         }, CONFIG.checkInterval);
     }
